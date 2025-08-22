@@ -1,4 +1,4 @@
-import {WsServer} from "@reneos/server"
+import { WsServer } from "@reneos/server"
 import EventPub from "./eventpub.js"
 
 let _client, _connected
@@ -27,17 +27,17 @@ class PubSub {
 	 * @returns 
 	 */
 	static Connect(config) {
-		
+
 		return new Promise((resolve) => {
 			_client = new WsServer.Client(PubSub.Generate())
 			_client.on("message", PubSub.ReadMessage)
 			_client.on("connect", () => {
-				_connected = true				
+				_connected = true
 				EventPub.Emit("connect", _client.id)
 				resolve(true)
 			})
 			_client.on("error", (m, c) => {
-				if(m.code==="ECONNREFUSED")
+				if (m.code === "ECONNREFUSED")
 					return resolve(false)
 				EventPub.Emit("error", m, c)
 			})
@@ -45,11 +45,11 @@ class PubSub {
 				_connected = false
 				EventPub.Emit("close", r)
 			})
-			const {tokenhead ="x-token",idhead="x-id",token,id,  ...conf} = config
+			const { tokenhead = "x-token", idhead = "x-id", token, id, ...conf } = config
 			_client.connect(conf, {
-				headers:{
-					[tokenhead] : token || '',
-					[idhead ]:id || ''
+				headers: {
+					[tokenhead]: token || '',
+					[idhead]: id || ''
 				}
 			})
 		})
@@ -73,7 +73,7 @@ class PubSub {
 		if (source)//if source - this.from server
 			return
 		try {
-			const str = JSON.stringify({ path, data: value, id: eventId, date: eventDate,source: null })
+			const str = JSON.stringify({ path, data: value, id: eventId, date: eventDate, source: null })
 			const result = _client.send(str)
 		} catch (error) {
 			console.warn(error)
@@ -89,10 +89,10 @@ class PubSub {
 		const msg = JSON.parse(message.toString())
 		if (_client.id === msg?.source)
 			return //only remote
-		EventPub.Publish(msg.path, msg.data, msg.id, msg.date, msg.source,msg.group)
+		EventPub.Publish(msg.path, msg.data, msg.id, msg.date, msg.source, msg.group)
 	}
 
-	static  Generate(len = 24) {	
+	static Generate(len = 24) {
 		const sym = "ABCDEFGHIKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 		let str = ''
 		for (let i = 0; i < len; i++)
